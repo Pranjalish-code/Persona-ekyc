@@ -1,0 +1,9 @@
+streamlit>=1.31
+streamlit-webrtc>=0.47
+opencv-python-headless>=4.8
+numpy>=1.24,<2.0
+pillow>=10.0
+insightface>=0.7.3
+onnxruntime>=1.16
+av>=10.0
+mediapipe>=0.10.9
