@@ -21,15 +21,27 @@ from livecheck import analyze_video
 def get_ice_servers():
     """Use Twilio's TURN server to fall back if peer-to-peer fails, else use standard STUN."""
     try:
-        if "TWILIO_ACCOUNT_SID" in st.secrets and "TWILIO_AUTH_TOKEN" in st.secrets:
+        if "METERED_API_KEY" in st.secrets:
+            import requests
+            api_key = st.secrets["METERED_API_KEY"]
+            response = requests.get(f"https://pgpro.metered.live/api/v1/turn/credentials?apiKey={api_key}")
+            if response.status_code == 200:
+                return response.json(), "Metered TURN Active ✅"
+            else:
+                return None, f"Metered Error: {response.status_code} ❌"
+        
+        # Fallback to Twilio if Metered isn't present
+        elif "TWILIO_ACCOUNT_SID" in st.secrets and "TWILIO_AUTH_TOKEN" in st.secrets:
             from twilio.rest import Client
             client = Client(st.secrets["TWILIO_ACCOUNT_SID"], st.secrets["TWILIO_AUTH_TOKEN"])
             token = client.tokens.create()
             return token.ice_servers, "Twilio TURN Active ✅"
+            
         else:
-            return None, "Twilio Secrets Missing ❌"
+            return None, "No TURN Secrets Found ❌"
+            
     except Exception as e:
-        return None, f"Twilio Error: {str(e)}"
+        return None, f"TURN Fetch Error: {str(e)}"
     
 def get_fallback_stun():
     return [
