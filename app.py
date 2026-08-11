@@ -18,6 +18,27 @@ from idphotoextract import crop_face_from_id_robust
 from arcface import get_embedding, cosine_similarity
 from livecheck import analyze_video
 
+@st.cache_data
+def get_ice_servers():
+    """Use Twilio's TURN server to fall back if peer-to-peer fails, else use standard STUN."""
+    try:
+        if "TWILIO_ACCOUNT_SID" in st.secrets and "TWILIO_AUTH_TOKEN" in st.secrets:
+            from twilio.rest import Client
+            client = Client(st.secrets["TWILIO_ACCOUNT_SID"], st.secrets["TWILIO_AUTH_TOKEN"])
+            token = client.tokens.create()
+            return token.ice_servers
+    except Exception as e:
+        pass
+    
+    return [
+        {"urls": ["stun:stun.l.google.com:19302"]},
+        {"urls": ["stun:stun1.l.google.com:19302"]},
+        {"urls": ["stun:stun2.l.google.com:19302"]},
+        {"urls": ["stun:stun3.l.google.com:19302"]},
+        {"urls": ["stun:stun4.l.google.com:19302"]},
+    ]
+
+
 
 # ---------------------------
 # Page
@@ -441,13 +462,7 @@ with right:
         st.info("Press **Start Random Challenge** → do EXACTLY the asked action within **5 seconds** → then save clip → verify.")
 
         RTC_CONFIGURATION = {
-            "iceServers": [
-                {"urls": ["stun:stun.l.google.com:19302"]},
-                {"urls": ["stun:stun1.l.google.com:19302"]},
-                {"urls": ["stun:stun2.l.google.com:19302"]},
-                {"urls": ["stun:stun3.l.google.com:19302"]},
-                {"urls": ["stun:stun4.l.google.com:19302"]},
-            ]
+            "iceServers": get_ice_servers()
         }
 
         webrtc_ctx = webrtc_streamer(
