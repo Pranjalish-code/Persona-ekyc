@@ -33,11 +33,12 @@ def get_ice_servers():
     
 def get_fallback_stun():
     return [
-        {"urls": ["stun:stun.l.google.com:19302"]},
-        {"urls": ["stun:stun1.l.google.com:19302"]},
-        {"urls": ["stun:stun2.l.google.com:19302"]},
-        {"urls": ["stun:stun3.l.google.com:19302"]},
-        {"urls": ["stun:stun4.l.google.com:19302"]},
+        {"urls": ["stun:openrelay.metered.ca:80", "stun:stun.l.google.com:19302"]},
+        {
+            "urls": ["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"],
+            "username": "openrelayproject",
+            "credential": "openrelayproject"
+        }
     ]
 
 
@@ -466,6 +467,7 @@ with right:
         ice_servers, twilio_status = get_ice_servers()
         if ice_servers is None:
             ice_servers = get_fallback_stun()
+            twilio_status = "OpenRelay TURN Active ✅"
             
         st.write(f"**Network Config:** {twilio_status}")
 
