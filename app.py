@@ -440,7 +440,15 @@ with right:
         st.markdown("### 🎯 Live Random Challenge")
         st.info("Press **Start Random Challenge** → do EXACTLY the asked action within **5 seconds** → then save clip → verify.")
 
-        RTC_CONFIGURATION = {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+        RTC_CONFIGURATION = {
+            "iceServers": [
+                {"urls": ["stun:stun.l.google.com:19302"]},
+                {"urls": ["stun:stun1.l.google.com:19302"]},
+                {"urls": ["stun:stun2.l.google.com:19302"]},
+                {"urls": ["stun:stun3.l.google.com:19302"]},
+                {"urls": ["stun:stun4.l.google.com:19302"]},
+            ]
+        }
 
         webrtc_ctx = webrtc_streamer(
             key="webrtc",
