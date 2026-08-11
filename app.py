@@ -18,7 +18,6 @@ from idphotoextract import crop_face_from_id_robust
 from arcface import get_embedding, cosine_similarity
 from livecheck import analyze_video
 
-@st.cache_data
 def get_ice_servers():
     """Use Twilio's TURN server to fall back if peer-to-peer fails, else use standard STUN."""
     try:
@@ -26,10 +25,13 @@ def get_ice_servers():
             from twilio.rest import Client
             client = Client(st.secrets["TWILIO_ACCOUNT_SID"], st.secrets["TWILIO_AUTH_TOKEN"])
             token = client.tokens.create()
-            return token.ice_servers
+            return token.ice_servers, "Twilio TURN Active ✅"
+        else:
+            return None, "Twilio Secrets Missing ❌"
     except Exception as e:
-        pass
+        return None, f"Twilio Error: {str(e)}"
     
+def get_fallback_stun():
     return [
         {"urls": ["stun:stun.l.google.com:19302"]},
         {"urls": ["stun:stun1.l.google.com:19302"]},
@@ -461,8 +463,14 @@ with right:
         st.markdown("### 🎯 Live Random Challenge")
         st.info("Press **Start Random Challenge** → do EXACTLY the asked action within **5 seconds** → then save clip → verify.")
 
+        ice_servers, twilio_status = get_ice_servers()
+        if ice_servers is None:
+            ice_servers = get_fallback_stun()
+            
+        st.write(f"**Network Config:** {twilio_status}")
+
         RTC_CONFIGURATION = {
-            "iceServers": get_ice_servers()
+            "iceServers": ice_servers
         }
 
         webrtc_ctx = webrtc_streamer(
